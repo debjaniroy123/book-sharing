@@ -6,7 +6,7 @@
  * Author: 
  * */
 
-// ================== ENQUEUE CSS & JS ==================
+
 function book_sharing_enqueue_assets() {
     wp_enqueue_style('book-sharing-css', plugin_dir_url(_FILE_) . 'book-sharing.css');
     wp_enqueue_script('book-sharing-js', plugin_dir_url(_FILE_) . 'book-sharing.js', array('jquery'), null, true);
@@ -14,12 +14,12 @@ function book_sharing_enqueue_assets() {
 add_action('wp_enqueue_scripts', 'book_sharing_enqueue_assets');
 add_action('admin_enqueue_scripts', 'book_sharing_enqueue_assets');
 
-// ================== CREATE TABLES ON ACTIVATION ==================
+
 function book_sharing_activate() {
     global $wpdb;
     $charset_collate = $wpdb->get_charset_collate();
 
-    // Books table
+    
     $table_name_books = $wpdb->prefix . 'book_sharing_books';
     $sql_books = "CREATE TABLE $table_name_books (
         id INT(11) NOT NULL AUTO_INCREMENT,
@@ -31,7 +31,7 @@ function book_sharing_activate() {
         PRIMARY KEY (id)
     ) $charset_collate;";
 
-    // Requests table
+    
     $table_name_requests = $wpdb->prefix . 'book_sharing_requests';
     $sql_requests = "CREATE TABLE $table_name_requests (
         id INT(11) NOT NULL AUTO_INCREMENT,
@@ -42,7 +42,7 @@ function book_sharing_activate() {
         PRIMARY KEY (id)
     ) $charset_collate;";
 
-    // Reviews table
+    
     $table_name_reviews = $wpdb->prefix . 'book_sharing_reviews';
     $sql_reviews = "CREATE TABLE $table_name_reviews (
         id INT(11) NOT NULL AUTO_INCREMENT,
@@ -61,7 +61,7 @@ function book_sharing_activate() {
 }
 register_activation_hook(_FILE_, 'book_sharing_activate');
 
-// ================== CLEAN TABLES ON UNINSTALL ==================
+
 function book_sharing_uninstall() {
     global $wpdb;
     $table_name_books = $wpdb->prefix . 'book_sharing_books';
@@ -71,7 +71,7 @@ function book_sharing_uninstall() {
 }
 register_uninstall_hook(_FILE_, 'book_sharing_uninstall');
 
-// ================== ADMIN MENU ==================
+
 function book_sharing_menu() {
     add_menu_page(
         'Book Sharing',
@@ -82,8 +82,6 @@ function book_sharing_menu() {
     );
 }
 add_action('admin_menu', 'book_sharing_menu');
-
-// ================== ADMIN PAGE ==================
 function book_sharing_admin_page() {
     if (isset($_POST['add_book'])) {
         book_sharing_add_book($_POST['title'], $_POST['author'], $_POST['category'], $_POST['condition']);
@@ -142,7 +140,7 @@ function book_sharing_admin_page() {
     }
 }
 
-// ================== HELPER FUNCTIONS ==================
+
 function book_sharing_add_book($title, $author, $category, $condition) {
     global $wpdb;
     $table_name_books = $wpdb->prefix . 'book_sharing_books';
@@ -160,13 +158,13 @@ function book_sharing_delete_book($book_id) {
     $wpdb->delete($table_name_books, ['id' => $book_id]);
 }
 
-// ================== FRONTEND SHORTCODE ==================
-// Search bar and review/rating system added
+
+
 function book_sharing_frontend_shortcode() {
     global $wpdb;
     $table_name_books = $wpdb->prefix . 'book_sharing_books';
 
-    // Handle search/filter
+    
     $where = "WHERE availability = 'available'";
     $search_title = isset($_GET['search_title']) ? sanitize_text_field($_GET['search_title']) : '';
     $search_author = isset($_GET['search_author']) ? sanitize_text_field($_GET['search_author']) : '';
@@ -183,8 +181,7 @@ function book_sharing_frontend_shortcode() {
     }
 
     $books = $wpdb->get_results("SELECT * FROM $table_name_books $where");
-
-    // Handle borrow request
+    
     $confirmation = '';
     if (isset($_POST['borrow_book']) && isset($_POST['book_id'])) {
         if (is_user_logged_in()) {
@@ -195,7 +192,7 @@ function book_sharing_frontend_shortcode() {
         }
     }
 
-    // Handle review submission
+    
     if (isset($_POST['submit_review']) && isset($_POST['book_id'])) {
         if (is_user_logged_in()) {
             book_sharing_handle_review($_POST['book_id'], $_POST['rating'], $_POST['review']);
@@ -205,7 +202,7 @@ function book_sharing_frontend_shortcode() {
         }
     }
 
-    // Search/filter form
+
     $output = $confirmation;
     $output .= '<form method="get" class="book-sharing-search-form"><input type="hidden" name="page_id" value="' . get_the_ID() . '">';
     $output .= 'Title: <input type="text" name="search_title" value="' . esc_attr($search_title) . '"> ';
@@ -218,13 +215,13 @@ function book_sharing_frontend_shortcode() {
         foreach ($books as $book) {
             $output .= "<li class='book-sharing-item'><strong>{$book->title}</strong> by {$book->author} - {$book->category} (Condition: {$book->book_condition})";
 
-            // Borrow form
+            
             $output .= "<form method='post' class='book-sharing-borrow-form' style='display:inline-block; margin-left:10px;'>
                 <input type='hidden' name='book_id' value='{$book->id}'>
                 <input type='submit' name='borrow_book' value='Borrow'>
             </form>";
 
-            // Review form
+            
             $output .= "<form method='post' class='book-sharing-review-form' style='display:inline-block; margin-left:10px;'>
                 <input type='hidden' name='book_id' value='{$book->id}'>
                 Rating: <select name='rating'>
@@ -251,7 +248,7 @@ function book_sharing_frontend_shortcode() {
 }
 add_shortcode('book_list', 'book_sharing_frontend_shortcode');
 
-// ================== HANDLE BORROW REQUESTS ==================
+
 function book_sharing_handle_borrow_request($book_id) {
     global $wpdb;
     $user_id = get_current_user_id();
@@ -266,7 +263,7 @@ function book_sharing_handle_borrow_request($book_id) {
     ]);
 }
 
-// ================== REVIEW & RATING ==================
+
 function book_sharing_handle_review($book_id, $rating, $review) {
     global $wpdb;
     $user_id = get_current_user_id();
